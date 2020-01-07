@@ -172,13 +172,13 @@ public final class GridSearch<MP extends Model.Parameters> extends Keyed<GridSea
     return _hyperSpaceWalker.getMaxHyperSpaceSize();
   }
 
-  private class ModelFeeder<MP extends Model.Parameters, D extends ModelFeeder> extends ParallelModelBuilder.ParallelModelBuilderCallback<D>{
+  private class ModelFeeder<MPF extends Model.Parameters, D extends ModelFeeder> extends ParallelModelBuilder.ParallelModelBuilderCallback<D>{
 
-    private final HyperSpaceWalker.HyperSpaceIterator<MP> hyperspaceIterator;
+    private final HyperSpaceWalker.HyperSpaceIterator<MPF> hyperspaceIterator;
     private final Grid grid;
     private final Lock parallelSearchGridLock = new ReentrantLock();
 
-    public ModelFeeder(HyperSpaceWalker.HyperSpaceIterator<MP> hyperspaceIterator, Grid grid) {
+    public ModelFeeder(HyperSpaceWalker.HyperSpaceIterator<MPF> hyperspaceIterator, Grid grid) {
       this.hyperspaceIterator = hyperspaceIterator;
       this.grid = grid;
     }
@@ -224,9 +224,8 @@ public final class GridSearch<MP extends Model.Parameters> extends Keyed<GridSea
                 && !_job.stop_requested()
                 && !_hyperSpaceWalker.stopEarly(previousModel, grid.getScoringInfos())) {
 
-          final MP nextModelParams = getNextModelParams(hyperspaceIterator, previousModel, grid);
+          final MPF nextModelParams = getNextModelParams(hyperspaceIterator, previousModel, grid);
 
-          // FIXME: ModelFeeder's <MP> type parameter is hiding GridSearch's one. Ideally would have moved ModelFeeder outside but it is too coupled with GridSearch class.
           reconcileMaxRuntime(grid._key, hyperspaceIterator, nextModelParams);
 
           parallelModelBuilder.run(Collections.singletonList(ModelBuilder.make(nextModelParams)));
@@ -261,8 +260,8 @@ public final class GridSearch<MP extends Model.Parameters> extends Keyed<GridSea
       return enoughTime;
     }
 
-    private MP getNextModelParams(final HyperSpaceWalker.HyperSpaceIterator<MP> hyperSpaceWalker, final Model model, final Grid grid){
-      MP params = null;
+    private MPF getNextModelParams(final HyperSpaceWalker.HyperSpaceIterator<MPF> hyperSpaceWalker, final Model model, final Grid grid){
+      MPF params = null;
 
       while (params == null) {
         if (hyperSpaceWalker.hasNext(model)) {
