@@ -28,17 +28,9 @@ public class ParallelModelBuilder extends ForkJoinTask<ParallelModelBuilder> {
 
   private final transient ParallelModelBuilderCallback _callback;
 
-  public AtomicInteger getModelInProgressCounter() {
-    return _modelInProgressCounter;
-  }
+  private final AtomicInteger _modelInProgressCounter = new AtomicInteger();
 
-  private final  AtomicInteger _modelInProgressCounter = new AtomicInteger();
-
-  public AtomicInteger getModelCompletedCounter() {
-    return _modelCompletedCounter;
-  }
-
-  private final  AtomicInteger _modelCompletedCounter = new AtomicInteger();
+  private final AtomicInteger _modelCompletedCounter = new AtomicInteger();
 
   private final transient AtomicBoolean _completed = new AtomicBoolean(false);
   private final transient ParallelModelBuiltListener _parallelModelBuiltListener;
@@ -63,6 +55,10 @@ public class ParallelModelBuilder extends ForkJoinTask<ParallelModelBuilder> {
         modelBuilder.setModelBuilderListener(_parallelModelBuiltListener);
         modelBuilder.trainModel();
       }
+  }
+
+  public boolean hasReachedMaxModels(int maxModels) {
+    return !(maxModels == 0 || _modelCompletedCounter.get() + _modelInProgressCounter.get() < maxModels);
   }
 
 

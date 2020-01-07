@@ -220,7 +220,7 @@ public final class GridSearch<MP extends Model.Parameters> extends Keyed<GridSea
       synchronized (hyperspaceIterator) {
         if (hyperspaceIterator.hasNext(previousModel)
                 && isThereEnoughTime()
-                && !hasReachedMaxModels(parallelModelBuilder)
+                && !parallelModelBuilder.hasReachedMaxModels(hyperspaceIterator.max_models())
                 && !_job.stop_requested()
                 && !_hyperSpaceWalker.stopEarly(previousModel, grid.getScoringInfos())) {
 
@@ -233,12 +233,6 @@ public final class GridSearch<MP extends Model.Parameters> extends Keyed<GridSea
           parallelModelBuilder.noMoreModels();
         }
       }
-    }
-
-    private boolean hasReachedMaxModels(ParallelModelBuilder parallelModelBuilder) {
-      int numberOfInProgressModels = parallelModelBuilder.getModelInProgressCounter().get();
-      int numberOfCompletedModels = parallelModelBuilder.getModelCompletedCounter().get();
-      return !(hyperspaceIterator.max_models() == 0 || numberOfCompletedModels + numberOfInProgressModels < hyperspaceIterator.max_models());
     }
 
     private void constructScoringInfo(final Model model) {
