@@ -28,9 +28,9 @@ public class ParallelModelBuilder extends ForkJoinTask<ParallelModelBuilder> {
 
   private final transient ParallelModelBuilderCallback _callback;
 
-  private final AtomicInteger _modelInProgressCounter = new AtomicInteger();
+  private final transient AtomicInteger _modelInProgressCounter = new AtomicInteger();
 
-  private final AtomicInteger _modelCompletedCounter = new AtomicInteger();
+  private final transient AtomicInteger _modelCompletedCounter = new AtomicInteger();
 
   private final transient AtomicBoolean _completed = new AtomicBoolean(false);
   private final transient ParallelModelBuiltListener _parallelModelBuiltListener;
