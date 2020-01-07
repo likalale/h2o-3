@@ -4,7 +4,7 @@ final String NODE_LABEL = 'docker && !mr-0xc8 && !micro'
 final String DOCKER_STASH = 'h2o-3-hadoop-docker-stash'
 final String REGISTRY_PREFIX = "${params.dockerRegistry}"
 final String IMAGE_NAME_PREFIX = "opsh2oai/h2o-3-hadoop"
-final List INTERNAL_CLUSTER_HADOOPS = ["hdp2.2", "cdh6.3"]
+final Map INTERNAL_CLUSTER_HADOOPS = [ "hdp2.2": false, "cdh6.3": true ]
 
 def pipelineContext = null
 def buildImageVersion = null
@@ -135,12 +135,15 @@ parallel(pipelineContext.getBuildConfig().getSupportedHadoopDistributions().coll
     ]
 })
 
-parallel(INTERNAL_CLUSTER_HADOOPS.collectEntries { distribution ->
+parallel(INTERNAL_CLUSTER_HADOOPS.collect { distribution, krb ->
     [
         "Build images for ${distribution} edge node", {
             node (pipelineContext.getBuildConfig().getDefaultNodeLabel()) {
                 final String buildStageName = "Build Edge node for ${distribution} cluster"
                 final String baseImageName = "${IMAGE_NAME_PREFIX}-${distribution}"
+                if (krb) {
+                    baseImageName = baseImageName + "-krb"
+                }
                 final String imageName = "${baseImageName}-0xd-edge"
                 stage(buildStageName) {
                     try {
