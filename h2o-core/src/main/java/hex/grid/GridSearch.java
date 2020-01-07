@@ -72,7 +72,6 @@ public final class GridSearch<MP extends Model.Parameters> extends Keyed<GridSea
   public final Key<Grid> _result;
   public final Job<Grid> _job;
   public final int _parallelism;
-  private boolean _isMultiRunSearch = false;
 
   /** Walks hyper space and for each point produces model parameters. It is
    *  used only locally to fire new model builders.  */
@@ -98,7 +97,7 @@ public final class GridSearch<MP extends Model.Parameters> extends Keyed<GridSea
     final Grid<MP> grid;
     Keyed keyed = DKV.getGet(_result);
 
-    if (_isMultiRunSearch = keyed != null) {
+    if (keyed != null) {
       if (! (keyed instanceof Grid))
         throw new H2OIllegalArgumentException("Name conflict: tried to create a Grid using the ID of a non-Grid object that's already in H2O: " + _job._result + "; it is a: " + keyed.getClass());
       grid = (Grid) keyed;
@@ -345,7 +344,7 @@ public final class GridSearch<MP extends Model.Parameters> extends Keyed<GridSea
       // This counter will be used as index to generate keys for corresponding `successful` models
       int numberOfBuiltModels = grid.getModelCount();
 
-      int maxNumberOfModelsToBuild = _isMultiRunSearch ? numberOfBuiltModels + it.max_models() : it.max_models();
+      int maxNumberOfModelsToBuild = numberOfBuiltModels + it.max_models();
 
       while (it.hasNext(model) && (it.max_models() == 0 || grid.getModelCount() < maxNumberOfModelsToBuild)) {
         if (_job.stop_requested()) throw new Job.JobCancelledException();  // Handle end-user cancel request
