@@ -735,6 +735,10 @@ public final class GridSearch<MP extends Model.Parameters> extends Keyed<GridSea
     }
   }
 
+  /**
+   * Constant for adaptive parallelism level - number of models built in parallel is decided by H2O.
+   */
+  public static final int ADAPTIVE_PARALLELISM_LEVEL = 0;
   public static final int SEQUENTIAL_MODEL_BUILDING = 1;
 
   /**
@@ -747,11 +751,11 @@ public final class GridSearch<MP extends Model.Parameters> extends Keyed<GridSea
    */
   public static int getParallelismLevel(final int parallelism) {
     if (parallelism < 0) {
-      throw new IllegalArgumentException(String.format("Grid search parallelism level must be >= 0. Give value is '%d'.",
+      throw new IllegalArgumentException(String.format("Grid search parallelism level must be >= 0. Given value is '%d'.",
               parallelism));
     }
 
-    if (parallelism == 0) {
+    if (parallelism == ADAPTIVE_PARALLELISM_LEVEL) {
       return getAdaptiveParallelism();
     } else {
       return parallelism;
