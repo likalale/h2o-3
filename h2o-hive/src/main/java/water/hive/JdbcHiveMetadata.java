@@ -1,14 +1,16 @@
 package water.hive;
 
 
+import com.sun.javafx.binding.StringFormatter;
+
 import java.sql.*;
 import java.util.*;
 
 public class JdbcHiveMetadata implements HiveMetaData {
 
-    private static final String SQL_DESCRIBE_TABLE = "DESCRIBE FORMATTED ?";
-    private static final String SQL_DESCRIBE_PARTITION = "DESCRIBE FORMATTED ? PARTITION (?)";
-    private static final String SQL_SHOW_PARTS = "SHOW PARTITIONS ?";
+    private static final String SQL_DESCRIBE_TABLE = "DESCRIBE FORMATTED %s";
+    private static final String SQL_DESCRIBE_PARTITION = "DESCRIBE FORMATTED %s PARTITION (%s)";
+    private static final String SQL_SHOW_PARTS = "SHOW PARTITIONS %s";
 
     private final String url;
 
@@ -149,7 +151,8 @@ public class JdbcHiveMetadata implements HiveMetaData {
     }
 
     private Table getTable(Connection conn, String name) throws SQLException {
-        try (PreparedStatement describeStmt = conn.prepareStatement(SQL_DESCRIBE_TABLE)) {
+        String query = String.format(SQL_DESCRIBE_TABLE, name);
+        try (PreparedStatement describeStmt = conn.prepareStatement(query)) {
             describeStmt.setString(1, name);
             try (ResultSet rs = describeStmt.executeQuery()) {
                 rs.next(); // go to first row
@@ -197,10 +200,10 @@ public class JdbcHiveMetadata implements HiveMetaData {
         if (partitionKeys.isEmpty()) {
             return Collections.emptyList();
         }
-        try (PreparedStatement partitionListStmt = conn.prepareStatement(SQL_SHOW_PARTS)) {
-            partitionListStmt.setString(1, tableName);
+        try (Statement partitionListStmt = conn.createStatement()) {
             List<Partition> parts = new ArrayList<>();
-            try (ResultSet rs = partitionListStmt.executeQuery()) {
+            String query = String.format(SQL_SHOW_PARTS, tableName);
+            try (ResultSet rs = partitionListStmt.executeQuery(query)) {
                 while (rs.next()) {
                     List<String> values = parsePartitionValues(rs.getString(1));
                     StorableMetadata data = readPartitionMetadata(conn, tableName, partitionKeys, values);
@@ -217,10 +220,9 @@ public class JdbcHiveMetadata implements HiveMetaData {
         List<Column> partitionKeys,
         List<String> values
     ) throws SQLException {
-        try (PreparedStatement describeStmt = conn.prepareStatement(SQL_DESCRIBE_PARTITION)) {
-            describeStmt.setString(1, tableName);
-            describeStmt.setString(2, toPartitionIdentifier(partitionKeys, values));
-            try (ResultSet rs = describeStmt.executeQuery()) {
+        String query = String.format(SQL_DESCRIBE_PARTITION, tableName, toPartitionIdentifier(partitionKeys, values));
+        try (Statement describeStmt = conn.createStatement()) {
+            try (ResultSet rs = describeStmt.executeQuery(query)) {
                 rs.next(); // go to first row
                 while (!rs.getString(1).contains("Detailed Partition Information")) {
                     rs.next(); // skip column infos                    
